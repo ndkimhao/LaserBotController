@@ -52,6 +52,11 @@ namespace LaserBotController
 			}
 		}
 
+		public void Add(Point p)
+		{
+			Points.Add(p);
+		}
+
 		public void Scale(double factor)
 		{
 			foreach (Point point in Points)
@@ -61,9 +66,14 @@ namespace LaserBotController
 			}
 		}
 
-		public void Add(Point p)
+		public void MatrixTransform(MatrixTransformData matrix)
 		{
-			Points.Add(p);
+			foreach (Point point in Points)
+			{
+				double X = point.X;
+				double Y = point.Y;
+				point.Change(matrix.A * X + matrix.C * Y + matrix.E, matrix.B * X + matrix.D * Y + matrix.F);
+			}
 		}
 	}
 
@@ -76,6 +86,15 @@ namespace LaserBotController
 				path.Scale(factor);
 			}
 		}
+
+		public static void MatrixTransform(this List<Path> paths, MatrixTransformData matrix)
+		{
+			foreach (Path path in paths)
+			{
+				path.MatrixTransform(matrix);
+			}
+		}
+
 		public static void CheckBound(this List<Path> paths)
 		{
 			foreach (Path path in paths)

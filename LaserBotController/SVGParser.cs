@@ -24,46 +24,93 @@ namespace LaserBotController
 
 		public void DoParse()
 		{
-			using (XmlReader reader = XmlReader.Create(new StreamReader(FilePath)))
+			using (StreamReader reader = new StreamReader(FilePath))
 			{
-				int groupDepth = 0;
-				while (reader.Read())
+				using (XmlReader xml = XmlReader.Create(reader))
 				{
-					switch (reader.NodeType)
+					Stack<MatrixTransformData> transformStack = new Stack<MatrixTransformData>();
+					Stack<bool> transformTrackStack = new Stack<bool>();
+					MatrixTransformData CTM = null;
+					while (xml.Read())
 					{
-						case XmlNodeType.Element:
-							if (reader.Name == "path")
-							{
-								if (groupDepth == 0)
+						switch (xml.NodeType)
+						{
+							case XmlNodeType.Element:
+								if (xml.Name == "path")
 								{
-									string pathData = reader.GetAttribute("d");
+									string pathData = xml.GetAttribute("d");
 
-									string style = reader.GetAttribute("style");
+									string strStyle = xml.GetAttribute("style");
 									double fillSpace = -1;
-									if (style != null)
+									if (strStyle != null)
 									{
-										int idx = style.IndexOf("fill:#");
+										int idx = strStyle.IndexOf("fill:#");
 										if (idx != -1)
 										{
-											float fillDensity = ColorTranslator.FromHtml(style.Substring(idx + 5, 7)).GetBrightness();
+											// 5 = "fill:".Length ; 7 = "#FFFFFF".Length
+											float fillDensity = ColorTranslator.FromHtml(strStyle.Substring(idx + 5, 7)).GetBrightness();
 											fillSpace = Global.MinScanline + fillDensity * (Global.MaxScanline - Global.MinScanline);
 										}
 									}
-									Paths.AddRange(parsePath(pathData, fillSpace));
+									List<Path> paths = parsePath(pathData, fillSpace);
+									if (CTM != null)
+									{
+										paths.MatrixTransform(CTM);
+									}
+									Paths.AddRange(paths);
 								}
-							}
-							else if (reader.Name == "g")
-							{
-								groupDepth++;
-							}
-							break;
-						case XmlNodeType.EndElement:
-							if (reader.Name == "g")
-							{
-								groupDepth--;
-							}
-							break;
-
+								else if (xml.Name == "g")
+								{
+									string strTransform = xml.GetAttribute("transform");
+									if (strTransform != null)
+									{
+										string[] args = strTransform.Split('(', ',', ')');
+										string func = args[0];
+										if (func == "matrix")
+										{
+											MatrixTransformData matrix = new MatrixTransformData(
+												double.Parse(args[1].Trim()),
+												double.Parse(args[2].Trim()),
+												double.Parse(args[3].Trim()),
+												double.Parse(args[4].Trim()),
+												double.Parse(args[5].Trim()),
+												double.Parse(args[6].Trim()));
+											transformStack.Push(matrix);
+											transformTrackStack.Push(true);
+											CTM = transformStack.CalculateCTM();
+										}
+										else if (func == "translate")
+										{
+											MatrixTransformData matrix = new MatrixTransformData(
+												1, 0, 0, 1,
+												double.Parse(args[1].Trim()),
+												double.Parse(args[2].Trim()));
+											transformStack.Push(matrix);
+											transformTrackStack.Push(true);
+											CTM = transformStack.CalculateCTM();
+										}
+										else
+										{
+											throw new Exception(func + " transform not supported");
+										}
+									}
+									else
+									{
+										transformTrackStack.Push(false);
+									}
+								}
+								break;
+							case XmlNodeType.EndElement:
+								if (xml.Name == "g")
+								{
+									if (transformTrackStack.Pop())
+									{
+										transformStack.Pop();
+										CTM = transformStack.CalculateCTM();
+									}
+								}
+								break;
+						}
 					}
 				}
 			}
@@ -552,5 +599,56 @@ namespace LaserBotController
 			return pts;
 		}
 
+	}
+
+	class MatrixTransformData
+	{
+		public double A { get; set; }
+		public double B { get; set; }
+		public double C { get; set; }
+		public double D { get; set; }
+		public double E { get; set; }
+		public double F { get; set; }
+
+		public MatrixTransformData(double a, double b, double c, double d, double e, double f)
+		{
+			A = a;
+			B = b;
+			C = c;
+			D = d;
+			E = e;
+			F = f;
+		}
+
+		public MatrixTransformData multiply(MatrixTransformData data)
+		{
+			double a = data.A;
+			double b = data.B;
+			double c = data.C;
+			double d = data.D;
+			double e = data.E;
+			double f = data.F;
+			return new MatrixTransformData(A * a + C * b, B * a + D * b, A * c + C * d, B * c + D * d, A * e + C * f + E, B * e + D * f + F);
+		}
+	}
+
+	static class MatrixExtension
+	{
+		public static MatrixTransformData CalculateCTM(this Stack<MatrixTransformData> stack)
+		{
+			if (stack.Count == 0)
+			{
+				return null;
+			}
+			else
+			{
+				MatrixTransformData matrix = stack.ElementAt(stack.Count - 1);
+				for (int i = stack.Count - 2; i >= 0; i--)
+				{
+					matrix = matrix.multiply(stack.ElementAt(i));
+				}
+				return matrix;
+			}
+		}
 	}
 }
