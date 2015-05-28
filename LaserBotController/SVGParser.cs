@@ -411,7 +411,7 @@ namespace LaserBotController
 			int segments = 1;
 			double tmpX, tmpY;
 
-			while (maxDist > Global.InterpolatePrecision && segments < 1000)
+			while (maxDist > Global.InterpolatePrecisionPow2 && segments < Global.InterpolateMaxSegments)
 			{
 				interval = interval / 2.0;
 				segments = segments * 2;
@@ -447,9 +447,9 @@ namespace LaserBotController
 						if (tmpX > maxDist)
 						{
 							maxDist = tmpX;
+							if (maxDist > Global.InterpolatePrecisionPow2) break;
 						}
 					}
-					maxDist = Math.Sqrt(maxDist);
 				}
 			}
 
@@ -468,7 +468,7 @@ namespace LaserBotController
 			int segments = 1;
 			double tmpX, tmpY;
 
-			while (maxDist > Global.InterpolatePrecision && segments < 1000)
+			while (maxDist > Global.InterpolatePrecisionPow2 && segments < Global.InterpolateMaxSegments)
 			{
 				interval = interval / 2.0;
 				segments = segments * 2;
@@ -500,9 +500,9 @@ namespace LaserBotController
 						if (tmpX > maxDist)
 						{
 							maxDist = tmpX;
+							if (maxDist > Global.InterpolatePrecisionPow2) break;
 						}
 					}
-					maxDist = Math.Sqrt(maxDist);
 				}
 			}
 
@@ -613,7 +613,7 @@ namespace LaserBotController
 			int segments = 1;
 			double tmpX, tmpY;
 
-			while (maxDist > Global.InterpolatePrecision && segments < 1000)
+			while (maxDist > Global.InterpolatePrecisionPow2 && segments < Global.InterpolateMaxSegments)
 			{
 				interval = interval / 2.0;
 				segments = segments * 2;
@@ -638,9 +638,9 @@ namespace LaserBotController
 						if (tmpX > maxDist)
 						{
 							maxDist = tmpX;
+							if (maxDist > Global.InterpolatePrecisionPow2) break;
 						}
 					}
-					maxDist = Math.Sqrt(maxDist);
 				}
 			}
 
