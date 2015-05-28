@@ -272,30 +272,25 @@ namespace LaserBotController
 					case 'c':
 					case 'A':
 					case 'a':
+					case 'Q':
+					case 'q':
 						mode = modeTmp;
 						i++;
 						break;
-					case 'S':
-					case 's':
-						if (mode != 'C' && mode != 'c' && mode != 'S' && mode != 's')
-						{
-							cntrlpt = relpt;
-						}
-						mode = modeTmp;
-						i++;
-						break;
+
 					case 'Z':
 					case 'z':
 						mode = modeTmp;
 						break;
+
+					case 'S':
+					case 's':
+					case 'T':
+					case 't':
 					case 'H':
 					case 'h':
 					case 'V':
 					case 'v':
-					case 'Q':
-					case 'q':
-					case 'T':
-					case 't':
 						throw new Exception(data[i][0] + " not supported");
 				}
 
@@ -343,25 +338,25 @@ namespace LaserBotController
 						px = (isRel ? tmpx : 0) + double.Parse(data[++i]);
 						py = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 
-						pathpoints.AddRange(interpolateCurve(relpt.Copy(), new Point(xc1, yc1), new Point(xc2, yc2), new Point(px, py)));
+						pathpoints.AddRange(interpolateCubicCurve(relpt.Copy(), new Point(xc1, yc1), new Point(xc2, yc2), new Point(px, py)));
 						relpt.Change(px, py);
 						cntrlpt.Change(tmpx + tmpx - xc2, tmpy + tmpy - yc2);
 						break;
 
-					case 'S':
-					case 's':
-						isRel = mode == 's';
+					case 'Q':
+					case 'q':
+						isRel = mode == 'q';
 						// this is followed by 4 numbers
 						tmpx = relpt.X;
 						tmpy = relpt.Y;
-						xc2 = (isRel ? tmpx : 0) + double.Parse(data[i]);
-						yc2 = (isRel ? tmpy : 0) + double.Parse(data[++i]);
+						xc1 = (isRel ? tmpx : 0) + double.Parse(data[i]);
+						yc1 = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 						px = (isRel ? tmpx : 0) + double.Parse(data[++i]);
 						py = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 
-						pathpoints.AddRange(interpolateCurve(relpt.Copy(), cntrlpt.Copy(), new Point(xc2, yc2), new Point(px, py)));
+						pathpoints.AddRange(interpolateQuadraticCurve(relpt.Copy(), new Point(xc1, yc1), new Point(px, py)));
 						relpt.Change(px, py);
-						cntrlpt.Change(tmpx + tmpx - xc2, tmpy + tmpy - yc2);
+						cntrlpt.Change(tmpx + tmpx - xc1, tmpy + tmpy - yc1);
 						break;
 
 					case 'A':
@@ -403,7 +398,7 @@ namespace LaserBotController
 			return paths;
 		}
 
-		private List<Point> interpolateCurve(Point p1, Point pc1, Point pc2, Point p2)
+		private List<Point> interpolateCubicCurve(Point p1, Point pc1, Point pc2, Point p2)
 		{
 			List<Point> pts = new List<Point>();
 
@@ -411,8 +406,8 @@ namespace LaserBotController
 			pts.Insert(1, p2);
 			double maxDist = p1.Distance(p2);
 			double interval = 1.0;
-			double win, win2;
-			double iin, iin2;
+			double oneMinus_t, win2;
+			double t, iin2;
 			int segments = 1;
 			double tmpX, tmpY;
 
@@ -423,19 +418,72 @@ namespace LaserBotController
 
 				for (int i = 1; i < segments; i += 2)
 				{
-					win = 1 - interval * i;
-					iin = interval * i;
-					win2 = win * win;
-					iin2 = iin * iin;
+					t = interval * i;
+					oneMinus_t = 1 - t;
+					win2 = oneMinus_t * oneMinus_t;
+					iin2 = t * t;
 
-					tmpX = win2 * win * p1.X +
-						3 * win2 * iin * pc1.X +
-						3 * win * iin2 * pc2.X +
-						iin2 * iin * p2.X;
-					tmpY = win2 * win * p1.Y +
-						3 * win2 * iin * pc1.Y +
-						3 * win * iin2 * pc2.Y +
-						iin2 * iin * p2.Y;
+					tmpX = win2 * oneMinus_t * p1.X +
+						3 * win2 * t * pc1.X +
+						3 * oneMinus_t * iin2 * pc2.X +
+						iin2 * t * p2.X;
+					tmpY = win2 * oneMinus_t * p1.Y +
+						3 * win2 * t * pc1.Y +
+						3 * oneMinus_t * iin2 * pc2.Y +
+						iin2 * t * p2.Y;
+
+					pts.Insert(i, new Point(tmpX, tmpY));
+				}
+				if (segments > 3)
+				{
+					maxDist = 0.0;
+					for (int i = 0; i < pts.Count - 2; i++)
+					{
+						// this is the deviation from a straight line between 3 points
+						tmpX = Global.Pow2(pts[i].X - pts[i + 1].X) +
+							 Global.Pow2(pts[i].Y - pts[i + 1].Y) -
+							(Global.Pow2(pts[i].X - pts[i + 2].X) +
+							 Global.Pow2(pts[i].Y - pts[i + 2].Y)) / 4.0;
+						if (tmpX > maxDist)
+						{
+							maxDist = tmpX;
+						}
+					}
+					maxDist = Math.Sqrt(maxDist);
+				}
+			}
+
+			return pts;
+		}
+
+		private List<Point> interpolateQuadraticCurve(Point p1, Point pc, Point p2)
+		{
+			List<Point> pts = new List<Point>();
+
+			pts.Insert(0, p1);
+			pts.Insert(1, p2);
+			double maxDist = p1.Distance(p2);
+			double interval = 1.0;
+			double oneMinus_t, t;
+			int segments = 1;
+			double tmpX, tmpY;
+
+			while (maxDist > Global.InterpolatePrecision && segments < 1000)
+			{
+				interval = interval / 2.0;
+				segments = segments * 2;
+
+				for (int i = 1; i < segments; i += 2)
+				{
+					t = interval * i;
+					oneMinus_t = 1 - t;
+
+					tmpX = oneMinus_t * oneMinus_t * p1.X +
+						 2 * oneMinus_t * t * pc.X +
+						t * t * p2.X;
+					tmpY = oneMinus_t * oneMinus_t * p1.Y +
+						 2 * oneMinus_t * t * pc.Y +
+						t * t * p2.Y;
 
 					pts.Insert(i, new Point(tmpX, tmpY));
 				}
