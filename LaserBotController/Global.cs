@@ -13,6 +13,8 @@ namespace LaserBotController
 		public static string Path = Application.StartupPath + "\\";
 
 		public const double InterpolatePrecision = .15;
+		public const double InterpolatePrecisionPow2 = InterpolatePrecision * InterpolatePrecision;
+		public const int InterpolateMaxSegments = 1000;
 
 		public static Color SVGRenderColor = Color.Black;
 

@@ -38,18 +38,19 @@ namespace LaserBotController
 		public static Edge[] GenerateEdge(this List<Path> paths)
 		{
 			List<Edge> edges = new List<Edge>();
+			Point p1, p2;
 			foreach (Path path in paths)
 			{
 				List<Point> points = path.Points;
 				for (int i = 0; i < points.Count - 1; i++)
 				{
-					if (points[i].Y < points[i + 1].Y)
+					if ((p1 = points[i]).Y < (p2 = points[i + 1]).Y)
 					{
-						edges.Add(new Edge(points[i], points[i + 1]));
+						edges.Add(new Edge(p1, p2));
 					}
 					else
 					{
-						edges.Add(new Edge(points[i + 1], points[i]));
+						edges.Add(new Edge(p2, p1));
 					}
 				}
 			}
