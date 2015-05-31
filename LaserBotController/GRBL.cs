@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -19,15 +20,38 @@ namespace LaserBotController
 		public Queue<string> ReceiveQueue;
 		public Queue<string> SendQueue;
 
+		private Queue<ListViewItem> LogQueue;
+		private Thread LogThread;
+
 		public GRBL(string portName, ListView listView)
 		{
 			PortName = portName;
 			ListViewCommand = listView;
 			ReceiveQueue = new Queue<string>();
 			SendQueue = new Queue<string>();
+
+			LogQueue = new Queue<ListViewItem>();
+			LogThread = new Thread(doLog);
+			LogThread.IsBackground = true;
+			LogThread.Start();
 		}
 
-		public bool TrySend(string rawData, string displayData)
+		private void doLog()
+		{
+			while (true)
+			{
+				if (LogQueue.Count > 0)
+				{
+					while (LogQueue.Count > 0)
+					{
+						ListViewCommand.Items.Add(LogQueue.Dequeue());
+					}
+					ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
+				}
+			}
+		}
+
+		public int TrySend(string rawData, string displayData)
 		{
 			while (ReceiveQueue.Count > 0)
 			{
@@ -36,7 +60,7 @@ namespace LaserBotController
 					SendQueue.Dequeue();
 				}
 			}
-			if ((SendQueue.StringLength() + displayData.Length) < Global.GRBL_BufferLimit)
+			if ((SendQueue.StringLength() + rawData.Length) < Global.GRBL_BufferLimit)
 			{
 				rawData += "\n";
 				try
@@ -49,11 +73,11 @@ namespace LaserBotController
 				}
 				logSend(displayData);
 				SendQueue.Enqueue(rawData);
-				return true;
+				return SendQueue.Count;
 			}
 			else
 			{
-				return false;
+				return -1;
 			}
 		}
 
@@ -179,8 +203,7 @@ namespace LaserBotController
 			ListViewItem item = new ListViewItem();
 			item.Text = data;
 			item.ForeColor = Global.GRBL_SendColor;
-			ListViewCommand.Items.Add(item);
-			ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
+			LogQueue.Enqueue(item);
 		}
 
 		private void logReceive(string data)
@@ -194,8 +217,7 @@ namespace LaserBotController
 				ListViewItem item = new ListViewItem();
 				item.Text = data;
 				item.ForeColor = Global.GRBL_ReceiveColor;
-				ListViewCommand.Items.Add(item);
-				ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
+				LogQueue.Enqueue(item);
 			}
 		}
 
@@ -204,8 +226,7 @@ namespace LaserBotController
 			ListViewItem item = new ListViewItem();
 			item.Text = data;
 			item.ForeColor = Global.GRBL_ErrorColor;
-			ListViewCommand.Items.Add(item);
-			ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
+			LogQueue.Enqueue(item);
 		}
 
 		private void logProgramError(string data)
@@ -213,8 +234,7 @@ namespace LaserBotController
 			ListViewItem item = new ListViewItem();
 			item.Text = "Program error: " + data;
 			item.ForeColor = Global.GRBL_ErrorColor;
-			ListViewCommand.Items.Add(item);
-			ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
+			LogQueue.Enqueue(item);
 		}
 
 		private void logInfo(string data)
@@ -222,8 +242,7 @@ namespace LaserBotController
 			ListViewItem item = new ListViewItem();
 			item.Text = "Info: " + data;
 			item.ForeColor = Global.GRBL_InfoColor;
-			ListViewCommand.Items.Add(item);
-			ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
+			LogQueue.Enqueue(item);
 		}
 
 	}

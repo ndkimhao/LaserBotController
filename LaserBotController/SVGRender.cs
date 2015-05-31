@@ -110,7 +110,7 @@ namespace LaserBotController
 					y = (int)Math.Round(p.Y * Global.RenderScale);
 					if (i > 0)
 					{
-						DrawLine(prevX, prevY, x, y, Color.Red);
+						DrawLine(prevX, prevY, x, y, Global.SVGSimulateColor);
 					}
 					prevX = x;
 					prevY = y;
@@ -242,6 +242,54 @@ namespace LaserBotController
 				for (; ; )
 				{
 					bmp.SetPixel(x1, y1, Global.SVGRenderColor);
+					if (y1 == y2)
+						break;
+					y1 += iy;
+					d += dx2;
+					if (d > dy)
+					{
+						x1 += ix;
+						d -= dy2;
+					}
+				}
+			}
+		}
+
+		public static void DrawLine(this Bitmap bmp, int x1, int y1, int x2, int y2, Color color)
+		{
+			// delta of exact value and rounded value of the dependant variable
+			int d = 0;
+
+			int dy = Math.Abs(y2 - y1);
+			int dx = Math.Abs(x2 - x1);
+
+			int dy2 = (dy << 1); // slope scaling factors to avoid floating
+			int dx2 = (dx << 1); // point
+
+			int ix = x1 < x2 ? 1 : -1; // increment direction
+			int iy = y1 < y2 ? 1 : -1;
+
+			if (dy <= dx)
+			{
+				for (; ; )
+				{
+					bmp.SetPixel(x1, y1, color);
+					if (x1 == x2)
+						break;
+					x1 += ix;
+					d += dy2;
+					if (d > dx)
+					{
+						y1 += iy;
+						d -= dx2;
+					}
+				}
+			}
+			else
+			{
+				for (; ; )
+				{
+					bmp.SetPixel(x1, y1, color);
 					if (y1 == y2)
 						break;
 					y1 += iy;
