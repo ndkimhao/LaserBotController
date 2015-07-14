@@ -158,7 +158,8 @@ namespace LaserBotController
 			}
 			foreach (KeyValuePair<int, int> entry in data)
 			{
-				highlightGCode(entry.Key, entry.Value);
+				//highlightGCode(entry.Key, entry.Value);
+				new Thread(() => highlightGCode(entry.Key, entry.Value)).Start();
 			}
 		}
 
@@ -170,17 +171,20 @@ namespace LaserBotController
 			item.EnsureVisible();
 
 			Edge edge = GCodesPaths[index];
-			if (edge != null)
+			lock (ImageControl)
 			{
-				Point p1 = edge.p1;
-				Point p2 = edge.p2;
-				((Bitmap)ImageControl.Image).DrawLine(
-					x1: (int)Math.Round(p1.X * Global.RenderScale),
-					y1: (int)Math.Round(p1.Y * Global.RenderScale),
-					x2: (int)Math.Round(p2.X * Global.RenderScale),
-					y2: (int)Math.Round(p2.Y * Global.RenderScale),
-					color: Global.SVGSentColor);
-				ImageControl.Refresh();
+				if (edge != null)
+				{
+					Point p1 = edge.p1;
+					Point p2 = edge.p2;
+					((Bitmap)ImageControl.Image).DrawLine(
+						x1: (int)Math.Round(p1.X * Global.RenderScale),
+						y1: (int)Math.Round(p1.Y * Global.RenderScale),
+						x2: (int)Math.Round(p2.X * Global.RenderScale),
+						y2: (int)Math.Round(p2.Y * Global.RenderScale),
+						color: Global.SVGSentColor);
+					ImageControl.Refresh();
+				}
 			}
 		}
 

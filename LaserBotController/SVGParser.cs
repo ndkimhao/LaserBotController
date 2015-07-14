@@ -89,6 +89,16 @@ namespace LaserBotController
 											transformTrackStack.Push(true);
 											CTM = transformStack.CalculateCTM();
 										}
+										else if (func == "scale")
+										{
+											MatrixTransformData matrix = new MatrixTransformData(
+												double.Parse(args[1].Trim()), 0,
+												0, double.Parse(args[2].Trim()),
+												0, 0);
+											transformStack.Push(matrix);
+											transformTrackStack.Push(true);
+											CTM = transformStack.CalculateCTM();
+										}
 										else
 										{
 											throw new Exception(func + " transform not supported");
