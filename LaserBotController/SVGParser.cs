@@ -89,6 +89,16 @@ namespace LaserBotController
 											transformTrackStack.Push(true);
 											CTM = transformStack.CalculateCTM();
 										}
+										else if (func == "scale")
+										{
+											MatrixTransformData matrix = new MatrixTransformData(
+												double.Parse(args[1].Trim()), 0,
+												0, double.Parse(args[2].Trim()),
+												0, 0);
+											transformStack.Push(matrix);
+											transformTrackStack.Push(true);
+											CTM = transformStack.CalculateCTM();
+										}
 										else
 										{
 											throw new Exception(func + " transform not supported");
@@ -239,7 +249,7 @@ namespace LaserBotController
 			List<Path> paths = new List<Path>();
 			string[] data = pathData.Split(' ', ',', '\t');
 
-			char modeTmp, mode = '\u0255'; // 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 = M,m,L,l,H,h,V,v,C,c,S,s,A,a,Z,z
+			char modeTmp, mode = ' '; // M,m,L,l,H,h,V,v,C,c,S,s,A,a,Z,z
 			double tmpx, tmpy;
 			double xc1, xc2, yc1, yc2, px, py, rx, ry, xrot;
 			bool bigarc, sweep;

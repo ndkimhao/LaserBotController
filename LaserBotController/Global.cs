@@ -12,11 +12,13 @@ namespace LaserBotController
 	{
 		public static string Path = Application.StartupPath + "\\";
 
-		public const double InterpolatePrecision = .15;
+		public const double InterpolatePrecision = 2;
 		public const double InterpolatePrecisionPow2 = InterpolatePrecision * InterpolatePrecision;
 		public const int InterpolateMaxSegments = 1000;
 
 		public static Color SVGRenderColor = Color.Black;
+		public static Color SVGSimulateColor = Color.Red;
+		public static Color SVGSentColor = Color.Green;
 
 		public const double UnitFactor = 90 / 25.4;
 
@@ -29,8 +31,8 @@ namespace LaserBotController
 		public const int RenderScale = 4;
 		public static readonly Point RenderLimit = new Point(SVGLimit.X * RenderScale, SVGLimit.Y * RenderScale);
 
-		public const double MinScanline = 0.25;
-		public const double MaxScanline = 2.5;
+		public const double MinScanline = 0.5;
+		public const double MaxScanline = 4;
 		public const double ScanlineStep = 0.25;
 
 		public static readonly Color GCode_CommentColor = Color.Green;

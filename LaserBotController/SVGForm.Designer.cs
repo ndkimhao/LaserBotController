@@ -42,6 +42,8 @@
 			this.lvSerial = new System.Windows.Forms.ListView();
 			this.btnSend = new System.Windows.Forms.Button();
 			this.txtFeedRate = new System.Windows.Forms.TextBox();
+			this.btnUnlock = new System.Windows.Forms.Button();
+			this.txtLaserPower = new System.Windows.Forms.TextBox();
 			this.SuspendLayout();
 			// 
 			// button1
@@ -132,7 +134,7 @@
 			// 
 			// btnGenerateGCode
 			// 
-			this.btnGenerateGCode.Location = new System.Drawing.Point(604, 282);
+			this.btnGenerateGCode.Location = new System.Drawing.Point(604, 308);
 			this.btnGenerateGCode.Name = "btnGenerateGCode";
 			this.btnGenerateGCode.Size = new System.Drawing.Size(75, 42);
 			this.btnGenerateGCode.TabIndex = 5;
@@ -142,7 +144,7 @@
 			// 
 			// btnHoming
 			// 
-			this.btnHoming.Location = new System.Drawing.Point(604, 349);
+			this.btnHoming.Location = new System.Drawing.Point(604, 391);
 			this.btnHoming.Name = "btnHoming";
 			this.btnHoming.Size = new System.Drawing.Size(75, 23);
 			this.btnHoming.TabIndex = 9;
@@ -156,7 +158,7 @@
 			this.lvOutput.Name = "lvOutput";
 			this.lvOutput.Size = new System.Drawing.Size(282, 569);
 			this.lvOutput.TabIndex = 10;
-			this.lvOutput.TileSize = new System.Drawing.Size(168, 15);
+			this.lvOutput.TileSize = new System.Drawing.Size(250, 15);
 			this.lvOutput.UseCompatibleStateImageBehavior = false;
 			this.lvOutput.View = System.Windows.Forms.View.Tile;
 			// 
@@ -172,7 +174,7 @@
 			// 
 			// btnSend
 			// 
-			this.btnSend.Location = new System.Drawing.Point(604, 378);
+			this.btnSend.Location = new System.Drawing.Point(604, 464);
 			this.btnSend.Name = "btnSend";
 			this.btnSend.Size = new System.Drawing.Size(75, 42);
 			this.btnSend.TabIndex = 5;
@@ -188,11 +190,31 @@
 			this.txtFeedRate.TabIndex = 12;
 			this.txtFeedRate.Text = "500";
 			// 
+			// btnUnlock
+			// 
+			this.btnUnlock.Location = new System.Drawing.Point(604, 420);
+			this.btnUnlock.Name = "btnUnlock";
+			this.btnUnlock.Size = new System.Drawing.Size(75, 23);
+			this.btnUnlock.TabIndex = 13;
+			this.btnUnlock.Text = "Unlock";
+			this.btnUnlock.UseVisualStyleBackColor = true;
+			this.btnUnlock.Click += new System.EventHandler(this.btnUnlock_Click);
+			// 
+			// txtLaserPower
+			// 
+			this.txtLaserPower.Location = new System.Drawing.Point(604, 282);
+			this.txtLaserPower.Name = "txtLaserPower";
+			this.txtLaserPower.Size = new System.Drawing.Size(75, 20);
+			this.txtLaserPower.TabIndex = 12;
+			this.txtLaserPower.Text = "1000";
+			// 
 			// SVGForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1216, 593);
+			this.Controls.Add(this.btnUnlock);
+			this.Controls.Add(this.txtLaserPower);
 			this.Controls.Add(this.txtFeedRate);
 			this.Controls.Add(this.lvSerial);
 			this.Controls.Add(this.lvOutput);
@@ -232,5 +254,7 @@
 		private System.Windows.Forms.ListView lvSerial;
 		private System.Windows.Forms.Button btnSend;
 		private System.Windows.Forms.TextBox txtFeedRate;
+		private System.Windows.Forms.Button btnUnlock;
+		private System.Windows.Forms.TextBox txtLaserPower;
     }
 }
