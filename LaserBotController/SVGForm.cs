@@ -22,11 +22,6 @@ namespace LaserBotController
 			Control.CheckForIllegalCrossThreadCalls = false;
 		}
 
-		private void button1_Click(object sender, EventArgs e)
-		{
-			MessageBox.Show(Global.Path);
-		}
-
 		private void btnOpen_Click(object sender, EventArgs e)
 		{
 			OpenFileDialog dialog = new OpenFileDialog();
@@ -39,6 +34,14 @@ namespace LaserBotController
 			if (dialog.ShowDialog(this) == DialogResult.OK)
 			{
 				svgPath = dialog.FileName;
+				btnProcess_Click(this, null);
+				foreach (Control cntrl in this.Controls)
+				{
+					if ("NeedOpen".Equals(cntrl.Tag))
+					{
+						cntrl.Enabled = true;
+					}
+				}
 			}
 		}
 
@@ -56,6 +59,7 @@ namespace LaserBotController
 		SVGRender render;
 		GCode gcode;
 		GRBL grbl;
+		Sample sample;
 		private void btnProcess_Click(object sender, EventArgs e)
 		{
 			parser = new SVGParser(svgPath);
@@ -67,9 +71,9 @@ namespace LaserBotController
 
 		private void SVGForm_Load(object sender, EventArgs e)
 		{
-			svgPath = @"D:\Projects\Arduino\LaserBot\SVG\drawing.svg";
-			loadFile();
-			btnProcess_Click(null, null);
+			//svgPath = @"D:\Projects\Arduino\LaserBot\SVG\drawing.svg";
+			//loadFile();
+			//btnProcess_Click(null, null);
 		}
 
 		private void btnSimulate_Click(object sender, EventArgs e)
@@ -79,7 +83,7 @@ namespace LaserBotController
 
 		private void btnGenerateGCode_Click(object sender, EventArgs e)
 		{
-			gcode = new GCode(parser.Paths, grbl, double.Parse(txtFeedRate.Text), double.Parse(txtLaserPower.Text), lvOutput, previewImage);
+			gcode = new GCode(parser.Paths, grbl, double.Parse(txtFeedRate.Text), 1000, lvOutput, previewImage);
 			gcode.Generate();
 		}
 
@@ -106,15 +110,42 @@ namespace LaserBotController
 			}
 			else
 			{
-				grbl = new GRBL(cbComPort.SelectedItem.ToString(), lvSerial);
-				string result = grbl.Connect();
-				if (result != null)
+				if (btnConnect.Text == "Connect")
 				{
-					MessageBox.Show("Error: " + result);
+					grbl = new GRBL(cbComPort.SelectedItem.ToString(), lvSerial);
+					string result = grbl.Connect();
+					if (result != null)
+					{
+						MessageBox.Show("Error: " + result);
+					}
+					else
+					{
+						btnConnect.Text = "Disconnect";
+
+						foreach (Control cntrl in this.Controls)
+						{
+							if ("NeedConnect".Equals(cntrl.Tag))
+							{
+								cntrl.Enabled = true;
+							}
+						}
+					}
 				}
 				else
 				{
-					btnConnect.Enabled = false;
+					if (grbl != null)
+					{
+						grbl.Disconnect();
+						btnConnect.Text = "Connect";
+
+						foreach (Control cntrl in this.Controls)
+						{
+							if ("NeedConnect".Equals(cntrl.Tag))
+							{
+								cntrl.Enabled = false;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -132,6 +163,33 @@ namespace LaserBotController
 		private void btnUnlock_Click(object sender, EventArgs e)
 		{
 			grbl.Serial.WriteLine("$X");
+		}
+
+		private void btnSample_Click(object sender, EventArgs e)
+		{
+			if (btnSample.Text == "Sample")
+			{
+				btnSample.Text = "Save SVG";
+				sample = new Sample(grbl, previewImage);
+				Application.AddMessageFilter(sample);
+			}
+			else
+			{
+				btnSample.Text = "Sample";
+				Application.RemoveMessageFilter(sample);
+
+				SaveFileDialog dialog = new SaveFileDialog();
+				dialog.CheckPathExists = true;
+				dialog.DereferenceLinks = true;
+				dialog.RestoreDirectory = true;
+				dialog.Filter = "SVG Files (*.svg)|*.svg";
+				if (dialog.ShowDialog(this) == DialogResult.OK)
+				{
+					sample.SaveSVG(dialog.FileName);
+				}
+
+				sample = null;
+			}
 		}
 
 	}

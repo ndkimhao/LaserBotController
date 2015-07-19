@@ -27,9 +27,10 @@ namespace LaserBotController
 		public static readonly Point MachineStartPoint = new Point(35, 35);
 		public static readonly Point SVGStartPoint = new Point(MachineStartPoint.X * UnitFactor, MachineStartPoint.Y * UnitFactor);
 		public static readonly Point SVGLimit = new Point(MachineLimit.X * UnitFactor, MachineLimit.Y * UnitFactor);
+		public const double SampleStep = 1;
 
 		public const int RenderScale = 4;
-		public static readonly Point RenderLimit = new Point(SVGLimit.X * RenderScale, SVGLimit.Y * RenderScale);
+		public static readonly Point RenderLimit = new Point(SVGLimit.X * RenderScale + 1, SVGLimit.Y * RenderScale + 1);
 
 		public const double MinScanline = 0.5;
 		public const double MaxScanline = 4;

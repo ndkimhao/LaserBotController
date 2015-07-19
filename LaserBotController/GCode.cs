@@ -21,7 +21,7 @@ namespace LaserBotController
 		public double FeedRate { get; set; }
 		public double LaserPower { get; set; }
 		public Thread SendThread { get; set; }
-		public GRBL Grbl;
+		public GRBL Grbl { get; set; }
 
 		public GCode(List<Path> paths, GRBL grbl, double feedRate, double laserPower, ListView listView, ImageControl.ImageControl imageControl)
 		{
@@ -38,12 +38,12 @@ namespace LaserBotController
 
 		public void Generate()
 		{
-			GCodes.Add(string.Format("M05 G21 G90 S{0:0.0000}", LaserPower));
-			GCodesToSend.Add(string.Format("M5G21G90S{0:0.0000}", LaserPower));
+			GCodes.Add(string.Format("M05 G21 G90 S{0:0.####}", LaserPower));
+			GCodesToSend.Add(string.Format("M5G21G90S{0:0.####}", LaserPower));
 			GCodesPaths.Add(null);
 
-			GCodes.Add(string.Format("G01 F{0:0.0000}", FeedRate));
-			GCodesToSend.Add(string.Format("G01F{0:0.0000}", FeedRate));
+			GCodes.Add(string.Format("G01 F{0:0.####}", FeedRate));
+			GCodesToSend.Add(string.Format("G01F{0:0.####}", FeedRate));
 			GCodesPaths.Add(null);
 
 			Point p;
@@ -67,8 +67,8 @@ namespace LaserBotController
 						GCodesToSend.Add(null);
 						GCodesPaths.Add(null);
 
-						GCodes.Add(string.Format("G00 X{0:0.0000} Y{1:0.0000}", x, y));
-						GCodesToSend.Add(string.Format("G0X{0:0.0000}Y{1:0.0000}", x, y));
+						GCodes.Add(string.Format("G00 X{0:0.####} Y{1:0.####}", x, y));
+						GCodesToSend.Add(string.Format("G0X{0:0.####}Y{1:0.####}", x, y));
 						GCodesPaths.Add(null);
 					}
 					else
@@ -80,8 +80,8 @@ namespace LaserBotController
 							GCodesPaths.Add(null);
 						}
 
-						GCodes.Add(string.Format("G01 X{0:0.0000} Y{1:0.0000}", x, y));
-						GCodesToSend.Add(string.Format("G1X{0:0.0000}Y{1:0.0000}", x, y));
+						GCodes.Add(string.Format("G01 X{0:0.####} Y{1:0.####}", x, y));
+						GCodesToSend.Add(string.Format("G1X{0:0.####}Y{1:0.####}", x, y));
 						GCodesPaths.Add(new Edge(path.Points[j - 1], p));
 
 						if (j == (path.Points.Count - 1))

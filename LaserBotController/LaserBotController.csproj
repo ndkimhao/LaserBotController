@@ -51,6 +51,7 @@
     <Compile Include="GRBL.cs" />
     <Compile Include="Path.cs" />
     <Compile Include="Point.cs" />
+    <Compile Include="Sample.cs" />
     <Compile Include="SVGForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -72,6 +73,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

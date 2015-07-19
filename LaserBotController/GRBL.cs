@@ -44,7 +44,8 @@ namespace LaserBotController
 				{
 					while (LogQueue.Count > 0)
 					{
-						ListViewCommand.Items.Add(LogQueue.Dequeue());
+						ListViewItem item = LogQueue.Dequeue();
+						if (item != null) ListViewCommand.Items.Add(item);
 					}
 					ListViewCommand.Items[ListViewCommand.Items.Count - 1].EnsureVisible();
 				}
@@ -105,6 +106,13 @@ namespace LaserBotController
 				return "Strange error";
 			}
 		}
+		public void Disconnect()
+		{
+			if (Serial.IsOpen)
+			{
+				Serial.Close();
+			}
+		}
 
 		private string serialBuffer = "";
 		private string serialReceive = null;
@@ -150,7 +158,7 @@ namespace LaserBotController
 						if (serialReceive == "ok")
 						{
 							logInfo("Homing success");
-							sendAndWait("G92 X0 Y0");
+							SendAndWait("G92 X0 Y0");
 							return true;
 						}
 						return false;
@@ -166,7 +174,7 @@ namespace LaserBotController
 			return false;
 		}
 
-		private string sendAndWait(string data)
+		private string _sendAndWait(string data)
 		{
 			try
 			{
@@ -190,6 +198,12 @@ namespace LaserBotController
 				logProgramError(ex.Message);
 			}
 			return null;
+		}
+
+		public string SendAndWait(string data)
+		{
+			serialReceive = null;
+			return _sendAndWait(data);
 		}
 
 		private void sendByte(byte data)

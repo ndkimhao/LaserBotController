@@ -38,8 +38,9 @@ namespace LaserBotController
 							case XmlNodeType.Element:
 								if (xml.Name == "path")
 								{
+									string id=xml.GetAttribute("id");
+									if (id != null && id == "LaserBot_samplePath") continue;
 									string pathData = xml.GetAttribute("d");
-
 									string strStyle = xml.GetAttribute("style");
 									double fillSpace = -1;
 									if (strStyle != null)
@@ -263,6 +264,7 @@ namespace LaserBotController
 			{
 				if (mode == 'M') { mode = 'L'; }  // only one M/m command at a time
 				else if (mode == 'm') { mode = 'l'; }
+				if ("".Equals(data[i])) continue;
 				switch (modeTmp = data[i][0])
 				{
 					case 'M':
