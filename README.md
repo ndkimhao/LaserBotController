@@ -1,4 +1,4 @@
 # LaserBotController
 Laser Bot's Controller Program
 
-Nothing to say =))
+Nguyễn Dương Kim Hảo @ 2015

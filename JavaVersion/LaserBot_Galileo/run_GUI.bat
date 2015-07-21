@@ -1,0 +1,1 @@
+java -cp dist/LaserBot_Galileo.jar laserbot_galileo.gui.GUIMain
