@@ -83,7 +83,7 @@ namespace LaserBotController
 
 		private void btnGenerateGCode_Click(object sender, EventArgs e)
 		{
-			gcode = new GCode(parser.Paths, grbl, double.Parse(txtFeedRate.Text), 1000, lvOutput, previewImage);
+			gcode = new GCode(parser.Paths, grbl, double.Parse(txtFeedRate.Text), double.Parse(txtLaserPower.Text), lvOutput, previewImage);
 			gcode.Generate();
 		}
 

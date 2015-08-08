@@ -43,6 +43,8 @@
 			this.txtFeedRate = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.btnSample = new System.Windows.Forms.Button();
+			this.txtLaserPower = new System.Windows.Forms.TextBox();
+			this.label2 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// btnOpen
@@ -120,7 +122,7 @@
 			// btnGenerateGCode
 			// 
 			this.btnGenerateGCode.Enabled = false;
-			this.btnGenerateGCode.Location = new System.Drawing.Point(604, 300);
+			this.btnGenerateGCode.Location = new System.Drawing.Point(601, 327);
 			this.btnGenerateGCode.Name = "btnGenerateGCode";
 			this.btnGenerateGCode.Size = new System.Drawing.Size(75, 42);
 			this.btnGenerateGCode.TabIndex = 5;
@@ -188,17 +190,17 @@
 			// txtFeedRate
 			// 
 			this.txtFeedRate.Enabled = false;
-			this.txtFeedRate.Location = new System.Drawing.Point(604, 274);
+			this.txtFeedRate.Location = new System.Drawing.Point(601, 255);
 			this.txtFeedRate.Name = "txtFeedRate";
 			this.txtFeedRate.Size = new System.Drawing.Size(75, 20);
 			this.txtFeedRate.TabIndex = 12;
 			this.txtFeedRate.Tag = "NeedConnect";
-			this.txtFeedRate.Text = "600";
+			this.txtFeedRate.Text = "1500";
 			// 
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(604, 255);
+			this.label1.Location = new System.Drawing.Point(601, 236);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(55, 13);
 			this.label1.TabIndex = 14;
@@ -216,13 +218,34 @@
 			this.btnSample.UseVisualStyleBackColor = true;
 			this.btnSample.Click += new System.EventHandler(this.btnSample_Click);
 			// 
+			// txtLaserPower
+			// 
+			this.txtLaserPower.Enabled = false;
+			this.txtLaserPower.Location = new System.Drawing.Point(601, 301);
+			this.txtLaserPower.Name = "txtLaserPower";
+			this.txtLaserPower.Size = new System.Drawing.Size(75, 20);
+			this.txtLaserPower.TabIndex = 12;
+			this.txtLaserPower.Tag = "NeedConnect";
+			this.txtLaserPower.Text = "1000";
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(601, 282);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(68, 13);
+			this.label2.TabIndex = 14;
+			this.label2.Text = "Laser power:";
+			// 
 			// SVGForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1216, 575);
+			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.btnUnlock);
+			this.Controls.Add(this.txtLaserPower);
 			this.Controls.Add(this.txtFeedRate);
 			this.Controls.Add(this.lvSerial);
 			this.Controls.Add(this.lvOutput);
@@ -262,5 +285,7 @@
 		private System.Windows.Forms.TextBox txtFeedRate;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button btnSample;
+		private System.Windows.Forms.TextBox txtLaserPower;
+		private System.Windows.Forms.Label label2;
     }
 }

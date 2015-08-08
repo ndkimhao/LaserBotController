@@ -48,15 +48,15 @@ namespace LaserBotController
 
 			Point p;
 			double x, y;
-			double start_X = Global.MachineStartPoint.X, start_Y = Global.MachineStartPoint.Y;
+			double limit_y = Global.MachineLimit.Y;
 			for (int i = 0; i < Paths.Count; i++)
 			{
 				Path path = Paths[i];
 				for (int j = 0; j < path.Points.Count; j++)
 				{
 					p = path.Points[j];
-					x = (p.X / Global.UnitFactor) - start_X;
-					y = (p.Y / Global.UnitFactor) - start_Y;
+					x = p.X / Global.UnitFactor;
+					y = limit_y - p.Y / Global.UnitFactor;
 					if (j == 0)
 					{
 						GCodes.Add(string.Empty);
@@ -93,6 +93,9 @@ namespace LaserBotController
 					}
 				}
 			}
+			GCodes.Add(string.Format("G00 X{0:0.####} Y{1:0.####}", Global.MachineLimit.X, Global.MachineLimit.Y));
+			GCodesToSend.Add(string.Format("G0X{0:0.####}Y{1:0.####}", Global.MachineLimit.X, Global.MachineLimit.Y));
+			GCodesPaths.Add(null);
 			OutputListView();
 		}
 

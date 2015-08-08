@@ -158,7 +158,7 @@ namespace LaserBotController
 						if (serialReceive == "ok")
 						{
 							logInfo("Homing success");
-							SendAndWait("G92 X0 Y0");
+							SendAndWait(string.Format("G92 X{0:0.####} Y{1:0.####}", Global.MachineLimit.X, Global.MachineLimit.Y));
 							return true;
 						}
 						return false;

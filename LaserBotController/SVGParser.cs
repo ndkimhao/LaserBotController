@@ -155,7 +155,7 @@ namespace LaserBotController
 		private void optimizePath()
 		{
 			List<Path> newPaths = new List<Path>();
-			Point curPoint = Global.SVGStartPoint.Copy();
+			Point curPoint = Global.ZeroPoint.Copy();
 			Path nearestPath = new Path();
 			while (Paths.Count > 0)
 			{

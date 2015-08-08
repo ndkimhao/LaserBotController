@@ -25,7 +25,7 @@ namespace LaserBotController
 
 		public Sample(GRBL grbl, ImageControl.ImageControl imageControl)
 		{
-			CurrentPoint = Global.MachineStartPoint;
+			CurrentPoint = Global.ZeroPoint;
 			PointList = new List<Point>();
 			Grbl = grbl;
 			ImageControl = imageControl;
@@ -120,7 +120,7 @@ namespace LaserBotController
 				return false;
 			}
 			bool result = "ok".Equals(Grbl.SendAndWait(string.Format("G0 X{0} Y{1}",
-				newPoint.X - Global.MachineStartPoint.X, newPoint.Y - Global.MachineStartPoint.Y)));
+				newPoint.X, newPoint.Y)));
 			if (result)
 			{
 				preview.DrawLine((int)Math.Round(CurrentPoint.X * Global.UnitFactor * Global.RenderScale),
