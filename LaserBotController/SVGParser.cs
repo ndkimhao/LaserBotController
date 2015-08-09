@@ -38,7 +38,7 @@ namespace LaserBotController
 							case XmlNodeType.Element:
 								if (xml.Name == "path")
 								{
-									string id=xml.GetAttribute("id");
+									string id = xml.GetAttribute("id");
 									if (id != null && id == "LaserBot_samplePath") continue;
 									string pathData = xml.GetAttribute("d");
 									string strStyle = xml.GetAttribute("style");
@@ -48,15 +48,18 @@ namespace LaserBotController
 										int idx = strStyle.IndexOf("fill:#");
 										if (idx != -1)
 										{
-											// 5 = "fill:".Length ; 7 = "#FFFFFF".Length
+											// "fill:".Length = 5 ; "#FFFFFF".Length = 7
 											float fillDensity = ColorTranslator.FromHtml(strStyle.Substring(idx + 5, 7)).GetBrightness();
 											fillSpace = Global.MinScanline + fillDensity * (Global.MaxScanline - Global.MinScanline);
 										}
 									}
 									List<Path> paths = parsePath(pathData, fillSpace);
-									if (CTM != null)
+									MatrixTransformData pathTM = parseTransformData(xml.GetAttribute("transform"));
+									if (CTM != null || pathTM != null)
 									{
-										paths.MatrixTransform(CTM);
+										if (pathTM == null) paths.MatrixTransform(CTM);
+										else if (CTM == null) paths.MatrixTransform(pathTM);
+										else paths.MatrixTransform(CTM.Multiply(pathTM));
 									}
 									Paths.AddRange(paths);
 								}
@@ -65,45 +68,9 @@ namespace LaserBotController
 									string strTransform = xml.GetAttribute("transform");
 									if (strTransform != null)
 									{
-										string[] args = strTransform.Split('(', ',', ')');
-										string func = args[0];
-										if (func == "matrix")
-										{
-											MatrixTransformData matrix = new MatrixTransformData(
-												double.Parse(args[1].Trim()),
-												double.Parse(args[2].Trim()),
-												double.Parse(args[3].Trim()),
-												double.Parse(args[4].Trim()),
-												double.Parse(args[5].Trim()),
-												double.Parse(args[6].Trim()));
-											transformStack.Push(matrix);
-											transformTrackStack.Push(true);
-											CTM = transformStack.CalculateCTM();
-										}
-										else if (func == "translate")
-										{
-											MatrixTransformData matrix = new MatrixTransformData(
-												1, 0, 0, 1,
-												double.Parse(args[1].Trim()),
-												double.Parse(args[2].Trim()));
-											transformStack.Push(matrix);
-											transformTrackStack.Push(true);
-											CTM = transformStack.CalculateCTM();
-										}
-										else if (func == "scale")
-										{
-											MatrixTransformData matrix = new MatrixTransformData(
-												double.Parse(args[1].Trim()), 0,
-												0, double.Parse(args[2].Trim()),
-												0, 0);
-											transformStack.Push(matrix);
-											transformTrackStack.Push(true);
-											CTM = transformStack.CalculateCTM();
-										}
-										else
-										{
-											throw new Exception(func + " transform not supported");
-										}
+										transformStack.Push(parseTransformData(strTransform));
+										transformTrackStack.Push(true);
+										CTM = transformStack.CalculateCTM();
 									}
 									else
 									{
@@ -132,9 +99,209 @@ namespace LaserBotController
 			//calcDistance();
 			optimizePath();
 			//calcDistance();
+			arcFit();
 
 			//System.Windows.Forms.MessageBox.Show(Paths.Count.ToString());
 
+		}
+
+		private void arcFit()
+		{
+			foreach (Path path in Paths)
+			{
+				List<Point> points = path.Points;
+				int pointsLen = points.Count;
+				int pointsLenS1 = pointsLen - 1;
+				for (int i = 1; i < pointsLen; i++)
+				{
+					int end = -1;
+					if (i < pointsLenS1)
+					{
+						double len = points[i - 1].Distance(points[i]);
+						double relAngle = Math.PI - Angle3Points(points[i], points[i - 1], points[i + 1]);
+						if (Math.Abs(relAngle) <= Global.Arc_MaxRelativeAngle)
+						{
+							for (int j = i + 1; j < pointsLen; j++)
+							{
+								if (Math.Abs(points[j - 1].Distance(points[j]) - len) > Global.Arc_LenEpsilon ||
+									Math.Abs(Math.PI - Angle3Points(points[j - 1], points[j], points[j - 2]) - relAngle)
+										> Global.Arc_AngleEpsilon) break;
+								end = j;
+							}
+						}
+					}
+					if (end != -1 && (end - i + 1) >= Global.Arc_MinSegments)
+					{
+						int start = i - 1;
+						//bool ccw = isCCW(points[start + 1], points[start], points[start + 2]);
+						bool ccw = IsClockwise(new Point[] { points[start], points[start + 1], points[start + 2] });
+						Point arcCenter = FindCenter(points[start], points[end], points[start + (end - start) / 2]);
+						if (arcCenter == null) continue;
+						Arc arc = new Arc()
+						{
+							Start = points[start].Copy(),
+							End = points[end].Copy(),
+							Center = arcCenter,
+							CCW = ccw
+						};
+						double absAngle = Angle3Points(arcCenter, points[start], points[end]);
+						if (absAngle >= Global.Arc_MinTotalAngle)
+						{
+							i = end;
+							points[start].Arc = arc;
+							for (int j = start; j <= end; j++)
+							{
+								points[j].IsIncluded = false;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		private bool isCCW(Point p1, Point p2, Point p3)
+		{
+			return (p1.X * p2.Y - p2.X * p1.Y + p2.X * p3.Y - p3.X * p2.Y) > 0;
+		}
+
+		public bool IsClockwise(Point[] vertices)
+		{
+			double sum = 0.0;
+			for (int i = 0; i < vertices.Length; i++)
+			{
+				Point v1 = vertices[i];
+				Point v2 = vertices[(i + 1) % vertices.Length];
+				sum += (v2.X - v1.X) * (v2.Y + v1.Y);
+			}
+			return sum > 0.0;
+		}
+
+		private Point FindCenter(Point a, Point b, Point c)
+		{
+			double x1 = (b.X + a.X) / 2;
+			double y1 = (b.Y + a.Y) / 2;
+			double dy1 = b.X - a.X;
+			double dx1 = -(b.Y - a.Y);
+
+			double x2 = (c.X + b.X) / 2;
+			double y2 = (c.Y + b.Y) / 2;
+			double dy2 = c.X - b.X;
+			double dx2 = -(c.Y - b.Y);
+
+			bool lines_intersect, segments_intersect;
+			Point intersection, close1, close2;
+			FindIntersection(
+				new Point(x1, y1), new Point(x1 + dx1, y1 + dy1),
+				new Point(x2, y2), new Point(x2 + dx2, y2 + dy2),
+				out lines_intersect, out segments_intersect,
+				out intersection, out close1, out close2);
+			if (lines_intersect)
+			{
+				return intersection;
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		private void FindIntersection(
+			Point p1, Point p2, Point p3, Point p4,
+			out bool lines_intersect, out bool segments_intersect,
+			out Point intersection,
+			out Point close_p1, out Point close_p2)
+		{
+			// Get the segments' parameters.
+			double dx12 = p2.X - p1.X;
+			double dy12 = p2.Y - p1.Y;
+			double dx34 = p4.X - p3.X;
+			double dy34 = p4.Y - p3.Y;
+
+			// Solve for t1 and t2
+			double denominator = (dy12 * dx34 - dx12 * dy34);
+
+			double t1 =
+				((p1.X - p3.X) * dy34 + (p3.Y - p1.Y) * dx34)
+					/ denominator;
+			if (double.IsInfinity(t1))
+			{
+				// The lines are parallel (or close enough to it).
+				lines_intersect = false;
+				segments_intersect = false;
+				intersection = new Point(double.NaN, double.NaN);
+				close_p1 = new Point(double.NaN, double.NaN);
+				close_p2 = new Point(double.NaN, double.NaN);
+				return;
+			}
+			lines_intersect = true;
+
+			double t2 =
+				((p3.X - p1.X) * dy12 + (p1.Y - p3.Y) * dx12)
+					/ -denominator;
+
+			// Find the point of intersection.
+			intersection = new Point(p1.X + dx12 * t1, p1.Y + dy12 * t1);
+
+			// The segments intersect if t1 and t2 are between 0 and 1.
+			segments_intersect =
+				((t1 >= 0) && (t1 <= 1) &&
+				 (t2 >= 0) && (t2 <= 1));
+
+			// Find the closest points on the segments.
+			if (t1 < 0)
+			{
+				t1 = 0;
+			}
+			else if (t1 > 1)
+			{
+				t1 = 1;
+			}
+
+			if (t2 < 0)
+			{
+				t2 = 0;
+			}
+			else if (t2 > 1)
+			{
+				t2 = 1;
+			}
+
+			close_p1 = new Point(p1.X + dx12 * t1, p1.Y + dy12 * t1);
+			close_p2 = new Point(p3.X + dx34 * t2, p3.Y + dy34 * t2);
+		}
+
+		private MatrixTransformData parseTransformData(string strData)
+		{
+			if (strData == null) return null;
+			string[] args = strData.Split('(', ',', ')');
+			string func = args[0];
+			switch (func)
+			{
+				case "matrix":
+					return new MatrixTransformData(
+						double.Parse(args[1].Trim()), double.Parse(args[2].Trim()), double.Parse(args[3].Trim()),
+						double.Parse(args[4].Trim()), double.Parse(args[5].Trim()), double.Parse(args[6].Trim())
+					);
+				case "translate":
+					return new MatrixTransformData(
+						1, 0, 0,
+						1, double.Parse(args[1].Trim()), double.Parse(args[2].Trim())
+					);
+				case "scale":
+					return new MatrixTransformData(
+						double.Parse(args[1].Trim()), 0, 0,
+						double.Parse(args[2].Trim()), 0, 0
+					);
+				default:
+					throw new Exception(func + " transform not supported");
+			}
+		}
+
+		private double Angle3Points(Point p1, Point p2, Point p3)
+		{
+			// p1 is the center
+			double angle = Math.Atan2(p2.X - p1.X, p2.Y - p1.Y) - Math.Atan2(p3.X - p1.X, p3.Y - p1.Y);
+			return angle <= 0 ? angle + 2 * Math.PI : angle;
 		}
 
 		private void calcDistance()
@@ -185,11 +352,11 @@ namespace LaserBotController
 				double fillSpace;
 				if ((fillSpace = path.FillSpace) != -1)
 				{
-					Edge[] edges = path.ChildList.GenerateEdge();
+					Line[] edges = path.ChildList.GenerateEdge();
 
 					double scanlineEnd = 0;
 					double scanlineStart = double.MaxValue;
-					foreach (Edge edge in edges)
+					foreach (Line edge in edges)
 					{
 						if (scanlineStart > edge.p1.Y)
 						{
@@ -205,7 +372,7 @@ namespace LaserBotController
 					{
 						List<double> xList = new List<double>();
 						double lastX = -1;
-						foreach (Edge edge in edges)
+						foreach (Line edge in edges)
 						{
 							double p = edge.Intersect(scanline);
 							if (p != -1)
@@ -255,9 +422,9 @@ namespace LaserBotController
 			double xc1, xc2, yc1, yc2, px, py, rx, ry, xrot;
 			bool bigarc, sweep;
 			bool isRel;
-			Point cntrlpt = new Point(0.0, 0.0); // special point for s commands
-			Point relpt = new Point(0.0, 0.0); // for relative commands
-			Point startpt = new Point(0.0, 0.0); // for z commands
+			Point controlPoint = new Point(0.0, 0.0); // special point for s commands
+			Point relPoint = new Point(0.0, 0.0); // for relative commands
+			Point startPoint = new Point(0.0, 0.0); // for z commands
 			List<Point> pathpoints = null;
 
 			for (int i = 0; i < data.Length; i++)
@@ -265,7 +432,8 @@ namespace LaserBotController
 				if (mode == 'M') { mode = 'L'; }  // only one M/m command at a time
 				else if (mode == 'm') { mode = 'l'; }
 				if ("".Equals(data[i])) continue;
-				switch (modeTmp = data[i][0])
+				string strElement = data[i];
+				switch (modeTmp = strElement[0])
 				{
 					case 'M':
 					case 'm':
@@ -278,7 +446,10 @@ namespace LaserBotController
 					case 'Q':
 					case 'q':
 						mode = modeTmp;
-						i++;
+						if (strElement.Length > 1)
+							data[i] = strElement.Substring(1);
+						else
+							i++;
 						break;
 
 					case 'Z':
@@ -309,11 +480,11 @@ namespace LaserBotController
 
 						isRel = mode == 'm';
 						// this is followed by 2 numbers
-						tmpx = (isRel ? relpt.X : 0) + double.Parse(data[i]);
-						tmpy = (isRel ? relpt.Y : 0) + double.Parse(data[++i]);
+						tmpx = (isRel ? relPoint.X : 0) + double.Parse(data[i]);
+						tmpy = (isRel ? relPoint.Y : 0) + double.Parse(data[++i]);
 
-						relpt.Change(tmpx, tmpy);
-						startpt.Change(tmpx, tmpy);
+						relPoint.Change(tmpx, tmpy);
+						startPoint.Change(tmpx, tmpy);
 						pathpoints.Add(new Point(tmpx, tmpy));
 						break;
 
@@ -321,10 +492,10 @@ namespace LaserBotController
 					case 'l':
 						isRel = mode == 'l';
 						// this is followed by 2 numbers
-						tmpx = (isRel ? relpt.X : 0) + double.Parse(data[i]);
-						tmpy = (isRel ? relpt.Y : 0) + double.Parse(data[++i]);
+						tmpx = (isRel ? relPoint.X : 0) + double.Parse(data[i]);
+						tmpy = (isRel ? relPoint.Y : 0) + double.Parse(data[++i]);
 
-						relpt.Change(tmpx, tmpy);
+						relPoint.Change(tmpx, tmpy);
 						pathpoints.Add(new Point(tmpx, tmpy));
 						break;
 
@@ -332,8 +503,8 @@ namespace LaserBotController
 					case 'c':
 						isRel = mode == 'c';
 						// this is followed by 6 numbers
-						tmpx = relpt.X;
-						tmpy = relpt.Y;
+						tmpx = relPoint.X;
+						tmpy = relPoint.Y;
 						xc1 = (isRel ? tmpx : 0) + double.Parse(data[i]);
 						yc1 = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 						xc2 = (isRel ? tmpx : 0) + double.Parse(data[++i]);
@@ -341,33 +512,33 @@ namespace LaserBotController
 						px = (isRel ? tmpx : 0) + double.Parse(data[++i]);
 						py = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 
-						pathpoints.AddRange(interpolateCubicCurve(relpt.Copy(), new Point(xc1, yc1), new Point(xc2, yc2), new Point(px, py)));
-						relpt.Change(px, py);
-						cntrlpt.Change(tmpx + tmpx - xc2, tmpy + tmpy - yc2);
+						pathpoints.AddRange(interpolateCubicCurve(relPoint.Copy(), new Point(xc1, yc1), new Point(xc2, yc2), new Point(px, py)));
+						relPoint.Change(px, py);
+						controlPoint.Change(tmpx + tmpx - xc2, tmpy + tmpy - yc2);
 						break;
 
 					case 'Q':
 					case 'q':
 						isRel = mode == 'q';
 						// this is followed by 4 numbers
-						tmpx = relpt.X;
-						tmpy = relpt.Y;
+						tmpx = relPoint.X;
+						tmpy = relPoint.Y;
 						xc1 = (isRel ? tmpx : 0) + double.Parse(data[i]);
 						yc1 = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 						px = (isRel ? tmpx : 0) + double.Parse(data[++i]);
 						py = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 
-						pathpoints.AddRange(interpolateQuadraticCurve(relpt.Copy(), new Point(xc1, yc1), new Point(px, py)));
-						relpt.Change(px, py);
-						cntrlpt.Change(tmpx + tmpx - xc1, tmpy + tmpy - yc1);
+						pathpoints.AddRange(interpolateQuadraticCurve(relPoint.Copy(), new Point(xc1, yc1), new Point(px, py)));
+						relPoint.Change(px, py);
+						controlPoint.Change(tmpx + tmpx - xc1, tmpy + tmpy - yc1);
 						break;
 
 					case 'A':
 					case 'a':
 						isRel = mode == 'a';
 						// this is followed by 7 numbers
-						tmpx = relpt.X;
-						tmpy = relpt.Y;
+						tmpx = relPoint.X;
+						tmpy = relPoint.Y;
 						rx = double.Parse(data[i]);
 						ry = double.Parse(data[++i]);
 						xrot = double.Parse(data[++i]);
@@ -376,16 +547,16 @@ namespace LaserBotController
 						px = (isRel ? tmpx : 0) + double.Parse(data[++i]);
 						py = (isRel ? tmpy : 0) + double.Parse(data[++i]);
 
-						pathpoints.AddRange(interpolateArc(relpt.Copy(), rx, ry, xrot, bigarc, sweep, new Point(px, py)));
-						relpt.Change(px, py);
+						pathpoints.AddRange(interpolateArc(relPoint.Copy(), rx, ry, xrot, bigarc, sweep, new Point(px, py)));
+						relPoint.Change(px, py);
 						break;
 
 					case 'Z':
 					case 'z':
-						tmpx = startpt.X;
-						tmpy = startpt.Y;
+						tmpx = startPoint.X;
+						tmpy = startPoint.Y;
 						pathpoints.Add(new Point(tmpx, tmpy));
-						relpt.Change(tmpx, tmpy);
+						relPoint.Change(tmpx, tmpy);
 						break;
 				}
 			}
@@ -671,7 +842,7 @@ namespace LaserBotController
 			F = f;
 		}
 
-		public MatrixTransformData multiply(MatrixTransformData data)
+		public MatrixTransformData Multiply(MatrixTransformData data)
 		{
 			double a = data.A;
 			double b = data.B;
@@ -696,7 +867,7 @@ namespace LaserBotController
 				MatrixTransformData matrix = stack.ElementAt(stack.Count - 1);
 				for (int i = stack.Count - 2; i >= 0; i--)
 				{
-					matrix = matrix.multiply(stack.ElementAt(i));
+					matrix = matrix.Multiply(stack.ElementAt(i));
 				}
 				return matrix;
 			}

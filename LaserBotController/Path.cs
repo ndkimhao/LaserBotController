@@ -49,6 +49,7 @@ namespace LaserBotController
 			if (needReverse)
 			{
 				Points.Reverse();
+				needReverse = false;
 			}
 		}
 

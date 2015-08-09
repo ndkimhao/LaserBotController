@@ -14,10 +14,15 @@ namespace LaserBotController
 		public int X_i { get { return (int)Math.Round(X); } }
 		public int Y_i { get { return (int)Math.Round(Y); } }
 
+		public bool IsIncluded { get; set; }
+		public Arc Arc { get; set; }
+
 		public Point(double X, double Y)
 		{
 			this.X = X;
 			this.Y = Y;
+			Arc = null;
+			IsIncluded = true;
 		}
 
 		public void Change(double X, double Y)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -71,9 +72,16 @@ namespace LaserBotController
 
 		private void SVGForm_Load(object sender, EventArgs e)
 		{
-			//svgPath = @"D:\Projects\Arduino\LaserBot\SVG\drawing.svg";
-			//loadFile();
-			//btnProcess_Click(null, null);
+			svgPath = @"D:\Projects\Arduino\LaserBot\SVG\drawing.svg";
+			loadFile();
+			btnProcess_Click(null, null);
+			foreach (Control cntrl in this.Controls)
+			{
+				if ("NeedOpen".Equals(cntrl.Tag) || "NeedConnect".Equals(cntrl.Tag))
+				{
+					cntrl.Enabled = true;
+				}
+			}
 		}
 
 		private void btnSimulate_Click(object sender, EventArgs e)
@@ -189,6 +197,19 @@ namespace LaserBotController
 				}
 
 				sample = null;
+			}
+		}
+
+		private void btnSave_Click(object sender, EventArgs e)
+		{
+			SaveFileDialog dialog = new SaveFileDialog();
+			dialog.CheckPathExists = true;
+			dialog.DereferenceLinks = true;
+			dialog.RestoreDirectory = true;
+			dialog.Filter = "GCODE Files (*.gcode)|*.gcode";
+			if (dialog.ShowDialog(this) == DialogResult.OK)
+			{
+				File.WriteAllLines(dialog.FileName, gcode.GCodes.ToArray());
 			}
 		}
 

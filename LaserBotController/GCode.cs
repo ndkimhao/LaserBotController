@@ -15,7 +15,7 @@ namespace LaserBotController
 		public List<Path> Paths { get; set; }
 		public List<string> GCodes { get; set; }
 		public List<string> GCodesToSend { get; set; }
-		public List<Edge> GCodesPaths { get; set; }
+		public List<Line> GCodesPaths { get; set; }
 		public ListView ListViewGCode { get; set; }
 		public ImageControl.ImageControl ImageControl { get; set; }
 		public double FeedRate { get; set; }
@@ -28,7 +28,7 @@ namespace LaserBotController
 			Paths = paths;
 			GCodes = new List<string>();
 			GCodesToSend = new List<string>();
-			GCodesPaths = new List<Edge>();
+			GCodesPaths = new List<Line>();
 			ListViewGCode = listView;
 			ImageControl = imageControl;
 			Grbl = grbl;
@@ -38,12 +38,16 @@ namespace LaserBotController
 
 		public void Generate()
 		{
-			GCodes.Add(string.Format("M05 G21 G90 S{0:0.####}", LaserPower));
-			GCodesToSend.Add(string.Format("M5G21G90S{0:0.####}", LaserPower));
+			GCodes.Add("(init parameters)");
+			GCodesToSend.Add(null);
 			GCodesPaths.Add(null);
 
-			GCodes.Add(string.Format("G01 F{0:0.####}", FeedRate));
-			GCodesToSend.Add(string.Format("G01F{0:0.####}", FeedRate));
+			GCodes.Add(string.Format("M05 G21 G90 S{0:0.###}", LaserPower));
+			GCodesToSend.Add(string.Format("M5G21G90S{0:0.###}", LaserPower));
+			GCodesPaths.Add(null);
+
+			GCodes.Add(string.Format("G01 F{0:0.###}", FeedRate));
+			GCodesToSend.Add(string.Format("G01F{0:0.###}", FeedRate));
 			GCodesPaths.Add(null);
 
 			Point p;
@@ -67,11 +71,11 @@ namespace LaserBotController
 						GCodesToSend.Add(null);
 						GCodesPaths.Add(null);
 
-						GCodes.Add(string.Format("G00 X{0:0.####} Y{1:0.####}", x, y));
-						GCodesToSend.Add(string.Format("G0X{0:0.####}Y{1:0.####}", x, y));
+						GCodes.Add(string.Format("G00 X{0:0.###} Y{1:0.###}", x, y));
+						GCodesToSend.Add(string.Format("G0X{0:0.###}Y{1:0.###}", x, y));
 						GCodesPaths.Add(null);
 					}
-					else
+					if (j != 0 || p.Arc != null)
 					{
 						if (j == 1)
 						{
@@ -79,22 +83,48 @@ namespace LaserBotController
 							GCodesToSend.Add("M3");
 							GCodesPaths.Add(null);
 						}
-
-						GCodes.Add(string.Format("G01 X{0:0.####} Y{1:0.####}", x, y));
-						GCodesToSend.Add(string.Format("G1X{0:0.####}Y{1:0.####}", x, y));
-						GCodesPaths.Add(new Edge(path.Points[j - 1], p));
-
-						if (j == (path.Points.Count - 1))
+						if (j != 1 && p.IsIncluded)
 						{
-							GCodes.Add("M05");
-							GCodesToSend.Add("M5");
+							GCodes.Add(string.Format("G01 X{0:0.###} Y{1:0.###}", x, y));
+							GCodesToSend.Add(string.Format("G1X{0:0.###}Y{1:0.###}", x, y));
+							GCodesPaths.Add(new Line(path.Points[j - 1], p));
+						}
+						if (p.Arc != null)
+						{
+							x = p.Arc.Start.X / Global.UnitFactor;
+							y = limit_y - p.Arc.Start.Y / Global.UnitFactor;
+							GCodes.Add(string.Format("G01 X{0:0.###} Y{1:0.###}", x, y));
+							GCodesToSend.Add(string.Format("G1X{0:0.###}Y{1:0.###}", x, y));
+							GCodesPaths.Add(null);
+
+							Arc arc = p.Arc;
+							string cmd = arc.CCW ? "G3" : "G2";
+							GCodes.Add(string.Format(cmd + " X{0:0.###} Y{1:0.###} I{2:0.###} J{3:0.###}",
+								arc.End.X / Global.UnitFactor, (limit_y - arc.End.Y) / Global.UnitFactor,
+								(arc.Center.X - arc.Start.X) / Global.UnitFactor, (arc.Center.Y + arc.Start.Y) / Global.UnitFactor));
+							GCodesToSend.Add(string.Format(cmd + "X{0:0.###}Y{1:0.###}I{2:0.###}J{3:0.###}",
+								arc.End.X / Global.UnitFactor, (limit_y - arc.End.Y) / Global.UnitFactor,
+								(arc.Center.X - arc.Start.X) / Global.UnitFactor, (arc.Center.Y + arc.Start.Y) / Global.UnitFactor));
 							GCodesPaths.Add(null);
 						}
 					}
 				}
+
+				GCodes.Add("M05");
+				GCodesToSend.Add("M5");
+				GCodesPaths.Add(null);
 			}
-			GCodes.Add(string.Format("G00 X{0:0.####} Y{1:0.####}", Global.MachineLimit.X, Global.MachineLimit.Y));
-			GCodesToSend.Add(string.Format("G0X{0:0.####}Y{1:0.####}", Global.MachineLimit.X, Global.MachineLimit.Y));
+
+			GCodes.Add(string.Empty);
+			GCodesToSend.Add(null);
+			GCodesPaths.Add(null);
+
+			GCodes.Add("(return home position)");
+			GCodesToSend.Add(null);
+			GCodesPaths.Add(null);
+
+			GCodes.Add(string.Format("G00 X{0:0.###} Y{1:0.###}", Global.MachineLimit.X, Global.MachineLimit.Y));
+			GCodesToSend.Add(string.Format("G0X{0:0.###}Y{1:0.###}", Global.MachineLimit.X, Global.MachineLimit.Y));
 			GCodesPaths.Add(null);
 			OutputListView();
 		}
@@ -110,15 +140,19 @@ namespace LaserBotController
 				item.Text = line;
 				if (line.StartsWith("("))
 				{
-					item.ForeColor = Global.GCode_CommentColor;
+					item.ForeColor = Global.GCode_Comment_Color;
 				}
 				else if (line.StartsWith("G00"))
 				{
-					item.ForeColor = Global.GCode_G00Color;
+					item.ForeColor = Global.GCode_G0_Color;
 				}
 				else if (line.StartsWith("G01") || line.StartsWith("M"))
 				{
-					item.ForeColor = Global.GCode_G01Color;
+					item.ForeColor = Global.GCode_M_G1_Color;
+				}
+				else if (line.StartsWith("G2") || line.StartsWith("G3"))
+				{
+					item.ForeColor = Global.GCode_G2_G3_Color;
 				}
 				ListViewGCode.Items.Add(item);
 			}
@@ -173,7 +207,7 @@ namespace LaserBotController
 			item.BackColor = Global.GCode_SentBackColor;
 			item.EnsureVisible();
 
-			Edge edge = GCodesPaths[index];
+			Line edge = GCodesPaths[index];
 			lock (ImageControl)
 			{
 				if (edge != null)

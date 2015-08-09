@@ -45,10 +45,12 @@
 			this.btnSample = new System.Windows.Forms.Button();
 			this.txtLaserPower = new System.Windows.Forms.TextBox();
 			this.label2 = new System.Windows.Forms.Label();
+			this.btnSave = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// btnOpen
 			// 
+			this.btnOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnOpen.Location = new System.Drawing.Point(604, 12);
 			this.btnOpen.Name = "btnOpen";
 			this.btnOpen.Size = new System.Drawing.Size(75, 23);
@@ -59,6 +61,9 @@
 			// 
 			// previewImage
 			// 
+			this.previewImage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.previewImage.Image = null;
 			this.previewImage.initialimage = null;
 			this.previewImage.Location = new System.Drawing.Point(12, 12);
@@ -75,6 +80,7 @@
 			// 
 			// btnProcess
 			// 
+			this.btnProcess.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnProcess.Enabled = false;
 			this.btnProcess.Location = new System.Drawing.Point(604, 41);
 			this.btnProcess.Name = "btnProcess";
@@ -87,6 +93,7 @@
 			// 
 			// btnSimulate
 			// 
+			this.btnSimulate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnSimulate.Enabled = false;
 			this.btnSimulate.Location = new System.Drawing.Point(604, 70);
 			this.btnSimulate.Name = "btnSimulate";
@@ -99,6 +106,7 @@
 			// 
 			// cbComPort
 			// 
+			this.cbComPort.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.cbComPort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.cbComPort.FormattingEnabled = true;
 			this.cbComPort.Location = new System.Drawing.Point(604, 115);
@@ -110,6 +118,7 @@
 			// 
 			// btnConnect
 			// 
+			this.btnConnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnConnect.Location = new System.Drawing.Point(604, 143);
 			this.btnConnect.Name = "btnConnect";
 			this.btnConnect.Size = new System.Drawing.Size(75, 23);
@@ -121,6 +130,7 @@
 			// 
 			// btnGenerateGCode
 			// 
+			this.btnGenerateGCode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnGenerateGCode.Enabled = false;
 			this.btnGenerateGCode.Location = new System.Drawing.Point(601, 327);
 			this.btnGenerateGCode.Name = "btnGenerateGCode";
@@ -133,6 +143,7 @@
 			// 
 			// btnHoming
 			// 
+			this.btnHoming.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnHoming.Enabled = false;
 			this.btnHoming.Location = new System.Drawing.Point(604, 389);
 			this.btnHoming.Name = "btnHoming";
@@ -145,6 +156,7 @@
 			// 
 			// lvOutput
 			// 
+			this.lvOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.lvOutput.Location = new System.Drawing.Point(710, 12);
 			this.lvOutput.Name = "lvOutput";
 			this.lvOutput.Size = new System.Drawing.Size(282, 551);
@@ -155,6 +167,7 @@
 			// 
 			// lvSerial
 			// 
+			this.lvSerial.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.lvSerial.Location = new System.Drawing.Point(998, 12);
 			this.lvSerial.Name = "lvSerial";
 			this.lvSerial.Size = new System.Drawing.Size(206, 551);
@@ -165,6 +178,7 @@
 			// 
 			// btnSend
 			// 
+			this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnSend.Enabled = false;
 			this.btnSend.Location = new System.Drawing.Point(604, 462);
 			this.btnSend.Name = "btnSend";
@@ -177,6 +191,7 @@
 			// 
 			// btnUnlock
 			// 
+			this.btnUnlock.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnUnlock.Enabled = false;
 			this.btnUnlock.Location = new System.Drawing.Point(604, 418);
 			this.btnUnlock.Name = "btnUnlock";
@@ -189,6 +204,7 @@
 			// 
 			// txtFeedRate
 			// 
+			this.txtFeedRate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.txtFeedRate.Enabled = false;
 			this.txtFeedRate.Location = new System.Drawing.Point(601, 255);
 			this.txtFeedRate.Name = "txtFeedRate";
@@ -199,6 +215,7 @@
 			// 
 			// label1
 			// 
+			this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label1.AutoSize = true;
 			this.label1.Location = new System.Drawing.Point(601, 236);
 			this.label1.Name = "label1";
@@ -208,6 +225,7 @@
 			// 
 			// btnSample
 			// 
+			this.btnSample.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.btnSample.Enabled = false;
 			this.btnSample.Location = new System.Drawing.Point(604, 193);
 			this.btnSample.Name = "btnSample";
@@ -220,6 +238,7 @@
 			// 
 			// txtLaserPower
 			// 
+			this.txtLaserPower.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.txtLaserPower.Enabled = false;
 			this.txtLaserPower.Location = new System.Drawing.Point(601, 301);
 			this.txtLaserPower.Name = "txtLaserPower";
@@ -230,12 +249,26 @@
 			// 
 			// label2
 			// 
+			this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.label2.AutoSize = true;
 			this.label2.Location = new System.Drawing.Point(601, 282);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(68, 13);
 			this.label2.TabIndex = 14;
 			this.label2.Text = "Laser power:";
+			// 
+			// btnSave
+			// 
+			this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnSave.Enabled = false;
+			this.btnSave.Location = new System.Drawing.Point(604, 524);
+			this.btnSave.Name = "btnSave";
+			this.btnSave.Size = new System.Drawing.Size(75, 23);
+			this.btnSave.TabIndex = 13;
+			this.btnSave.Tag = "NeedConnect";
+			this.btnSave.Text = "Save";
+			this.btnSave.UseVisualStyleBackColor = true;
+			this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
 			// 
 			// SVGForm
 			// 
@@ -244,6 +277,7 @@
 			this.ClientSize = new System.Drawing.Size(1216, 575);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
+			this.Controls.Add(this.btnSave);
 			this.Controls.Add(this.btnUnlock);
 			this.Controls.Add(this.txtLaserPower);
 			this.Controls.Add(this.txtFeedRate);
@@ -287,5 +321,6 @@
 		private System.Windows.Forms.Button btnSample;
 		private System.Windows.Forms.TextBox txtLaserPower;
 		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Button btnSave;
     }
 }

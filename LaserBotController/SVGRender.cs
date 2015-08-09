@@ -65,6 +65,17 @@ namespace LaserBotController
 					{
 						Image.DrawLine(prevX, prevY, x, y);
 					}
+					/*if (p.Arc != null)
+					{
+						Image.DrawLine((int)Math.Round(p.Arc.Start.X * Global.RenderScale),
+							(int)Math.Round(p.Arc.Start.Y * Global.RenderScale),
+							(int)Math.Round(p.Arc.Center.X * Global.RenderScale),
+							(int)Math.Round(p.Arc.Center.Y * Global.RenderScale), Color.RoyalBlue);
+						Image.DrawLine((int)Math.Round(p.Arc.End.X * Global.RenderScale),
+							(int)Math.Round(p.Arc.End.Y * Global.RenderScale),
+							(int)Math.Round(p.Arc.Center.X * Global.RenderScale),
+							(int)Math.Round(p.Arc.Center.Y * Global.RenderScale), Color.RoyalBlue);
+					}*/
 					prevX = x;
 					prevY = y;
 				}

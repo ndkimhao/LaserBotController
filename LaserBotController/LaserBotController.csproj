@@ -45,7 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Edge.cs" />
+    <Compile Include="Arc.cs" />
+    <Compile Include="Line.cs" />
     <Compile Include="GCode.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="GRBL.cs" />
